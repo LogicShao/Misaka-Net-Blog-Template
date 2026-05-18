@@ -1,0 +1,294 @@
+---
+// Misaka Network - Card Component (Blog Post Preview)
+import FormattedDate from './FormattedDate.astro';
+import Tag from './Tag.astro';
+import { formatWordCount } from '../utils/wordCount';
+
+export interface Props {
+  title: string;
+  description: string;
+  pubDate: Date;
+  heroImage?: string;
+  tags?: string[];
+  slug: string;
+  wordCount?: number;
+}
+
+const {title, description, pubDate, heroImage, tags = [], slug, wordCount} = Astro.props;
+---
+
+<article class="card-misaka group">
+  <!-- 图片部分 -->
+  {heroImage && (
+    <div class="relative overflow-hidden rounded-lg mb-4 card-image-container">
+      <img
+        src={heroImage}
+        alt={title}
+        class="w-full h-48 object-cover card-image"
+        draggable="false"
+        loading="lazy"
+        style="pointer-events: none !important; user-select: none !important; -webkit-user-drag: none !important;"
+      />
+      <!-- 悬停电流效果 -->
+      <div
+        class="absolute inset-0 bg-gradient-to-r from-misaka-blue/0 via-misaka-blue/15 to-misaka-blue/0 opacity-0 group-hover:opacity-60 transition-opacity duration-300"></div>
+    </div>
+  )}
+
+  <!-- 内容部分 -->
+  <div class="space-y-3">
+    <!-- 日期和字数 -->
+    <div class="flex items-center flex-wrap gap-x-4 gap-y-2 text-sm text-misaka-circuit font-mono">
+      <!-- 日期 -->
+      <div class="flex items-center space-x-2">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+        </svg>
+        <FormattedDate date={pubDate}/>
+      </div>
+      <!-- 字数 -->
+      {wordCount && (
+        <div class="flex items-center space-x-2">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+          </svg>
+          <span>{formatWordCount(wordCount)}</span>
+        </div>
+      )}
+    </div>
+
+    <!-- 标题 -->
+    <h2 class="text-2xl font-bold group-hover:text-misaka-blue transition-colors duration-200"
+        style="color: var(--text-primary);">
+      <a href={`/blog/${slug}`} class="no-underline">
+        {title}
+      </a>
+    </h2>
+
+    <!-- 描述 -->
+    <p class="leading-relaxed line-clamp-3" style="color: var(--text-secondary);">
+      {description}
+    </p>
+
+    <!-- 标签 -->
+    {tags.length > 0 && (
+      <div class="flex flex-wrap gap-2 pt-2">
+        {tags.map(tag =>
+          <Tag tag={tag}/>)}
+      </div>
+    )}
+
+    <!-- 阅读更多按钮 -->
+    <div class="pt-4">
+      <a
+        href={`/blog/${slug}`}
+        class="inline-flex items-center space-x-2 text-misaka-blue hover:text-misaka-accent transition-colors font-mono text-sm group"
+      >
+        <span>READ_MORE</span>
+        <svg class="w-4 h-4 transform group-hover:translate-x-1 transition-transform" fill="none"
+             stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/>
+        </svg>
+      </a>
+    </div>
+  </div>
+</article>
+
+<style is:global>
+  /* Chrome GPU 合成层 Bug 修复方案 - 使用全局样式确保应用 */
+  .card-image {
+    /* 明确禁止所有动画和关键帧 */
+    animation: none !important;
+    animation-name: none !important;
+    animation-duration: 0s !important;
+    animation-iteration-count: 0 !important;
+    animation-delay: 0s !important;
+    animation-fill-mode: none !important;
+
+    /* 默认transform锁定为scale(1) */
+    transform: scale(1) !important;
+    transform-origin: center center;
+
+    /* 只允许transform的过渡效果 */
+    transition: transform 0.3s ease !important;
+    transition-property: transform !important;
+
+    /* ❌ 移除 will-change - 这可能导致 Chrome 的 GPU 合成层循环 bug */
+    /* ❌ 移除 backface-visibility - 避免强制硬件加速 */
+
+    /* ✅ 使用 transform-style 防止 3D 上下文问题 */
+    transform-style: flat;
+    -webkit-transform-style: flat;
+
+    /* ✅ 强制使用 CPU 渲染，避免 GPU 合成层问题 */
+    -webkit-transform: scale(1);
+    -moz-transform: scale(1);
+    -ms-transform: scale(1);
+
+    /* ⭐ 关键：禁用图像的所有用户交互 */
+    pointer-events: none !important;
+    user-select: none !important;
+    -webkit-user-select: none !important;
+    -moz-user-select: none !important;
+    -ms-user-select: none !important;
+    -webkit-user-drag: none !important;
+    -khtml-user-drag: none !important;
+    -moz-user-drag: none !important;
+    -o-user-drag: none !important;
+  }
+
+  .card-image-container {
+    /* 容器完全锁定，禁止任何动画 */
+    animation: none !important;
+    transform: none !important;
+    position: relative;
+
+    /* 防止容器创建新的合成层 */
+    transform-style: flat;
+    -webkit-transform-style: flat;
+
+    /* ❌ 不禁用容器的pointer-events，否则hover效果会失效 */
+    /* ✅ 只禁用图像本身的pointer-events */
+  }
+
+  /* Hover时的缩放效果 - 使用更高的specificity */
+  .card-misaka.group:hover .card-image {
+    transform: scale(1.02) !important;
+    -webkit-transform: scale(1.02) !important;
+    -moz-transform: scale(1.02) !important;
+    -ms-transform: scale(1.02) !important;
+  }
+
+  /* 明确锁定非hover状态 - 最高优先级 */
+  .card-misaka.group:not(:hover) .card-image {
+    transform: scale(1) !important;
+    -webkit-transform: scale(1) !important;
+    -moz-transform: scale(1) !important;
+    -ms-transform: scale(1) !important;
+  }
+
+  /* ⭐ 关键修复：点击时强制锁定 transform - 防止 Chrome 点击触发的 bug */
+  .card-misaka:active .card-image,
+  .card-misaka:focus .card-image,
+  .card-misaka:focus-within .card-image,
+  .card-image:active,
+  .card-image:focus {
+    transform: scale(1) !important;
+    -webkit-transform: scale(1) !important;
+    -moz-transform: scale(1) !important;
+    -ms-transform: scale(1) !important;
+    animation: none !important;
+    transition: none !important;
+  }
+
+  /* 防止图像容器在点击时触发任何变化 */
+  .card-image-container:active,
+  .card-image-container:focus,
+  .card-image-container:focus-within {
+    transform: none !important;
+    animation: none !important;
+  }
+
+  /* 禁用图像的默认焦点轮廓 */
+  .card-image:focus,
+  .card-image:focus-visible {
+    outline: none !important;
+  }
+
+  /* 针对可能的CSS继承问题 - 防止父元素的动画影响 */
+  .card-misaka {
+    animation: none !important;
+  }
+
+  .card-misaka * {
+    animation-iteration-count: 1 !important;
+  }
+
+  /* 针对特定场景：防止页面加载时的动画干扰 */
+  @keyframes card-image-lock-transform {
+    to {
+      transform: scale(1);
+    }
+  }
+</style>
+
+<script>
+  // 🔒 运行时强制锁定图像 transform - 防止 Chrome 渲染 Bug
+  function lockCardImageTransforms() {
+    // 获取所有卡片图像
+    const cardImages = document.querySelectorAll('.card-image');
+
+    if (cardImages.length === 0) return;
+
+    console.log(`[Card Fix] 锁定 ${cardImages.length} 个卡片图像的 transform`);
+
+    cardImages.forEach((img) => {
+      const htmlImg = img as HTMLElement;
+
+      // 强制重置 transform
+      htmlImg.style.transform = 'scale(1)';
+      htmlImg.style.webkitTransform = 'scale(1)';
+
+      // 监听任何可能触发重绘的事件
+      const resetTransform = () => {
+        // 如果父元素没有 hover，强制保持 scale(1)
+        const card = htmlImg.closest('.card-misaka');
+        if (card && !card.matches(':hover')) {
+          htmlImg.style.transform = 'scale(1)';
+          htmlImg.style.webkitTransform = 'scale(1)';
+        }
+      };
+
+      // 监听各种可能触发bug的事件
+      ['click', 'mousedown', 'mouseup', 'focus', 'blur', 'touchstart', 'touchend'].forEach(eventType => {
+        img.addEventListener(eventType, resetTransform, { passive: true });
+      });
+
+      // 监听父卡片的点击事件
+      const card = img.closest('.card-misaka');
+      if (card) {
+        card.addEventListener('click', resetTransform, { passive: true });
+      }
+    });
+
+    // 使用 MutationObserver 监控 transform 的意外变化
+    const observer = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        if (mutation.type === 'attributes' && mutation.attributeName === 'style') {
+          const img = mutation.target as HTMLElement;
+          const card = img.closest('.card-misaka');
+
+          // 如果不在 hover 状态，强制恢复 scale(1)
+          if (card && !card.matches(':hover')) {
+            const currentTransform = window.getComputedStyle(img).transform;
+            if (currentTransform !== 'matrix(1, 0, 0, 1, 0, 0)' && currentTransform !== 'none') {
+              console.warn('[Card Fix] 检测到异常 transform，强制重置:', currentTransform);
+              img.style.transform = 'scale(1)';
+              img.style.webkitTransform = 'scale(1)';
+            }
+          }
+        }
+      });
+    });
+
+    // 监控所有图像的样式变化
+    cardImages.forEach(img => {
+      observer.observe(img, {
+        attributes: true,
+        attributeFilter: ['style']
+      });
+    });
+  }
+
+  // 页面加载时执行
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', lockCardImageTransforms);
+  } else {
+    lockCardImageTransforms();
+  }
+
+  // Astro 页面切换时重新执行
+  document.addEventListener('astro:page-load', lockCardImageTransforms);
+</script>

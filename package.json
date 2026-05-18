@@ -1,0 +1,64 @@
+{
+  "name": "misaka-net-blog",
+  "type": "module",
+  "version": "0.0.1",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "build:full": "npm run update-graph && npm run build",
+    "preview": "astro preview",
+    "astro": "astro",
+    "build-and-preview": "astro build && astro preview",
+    "new": "node tools/scripts/new-post.js",
+    "friends": "node tools/scripts/manage-friends.js",
+    "friends:test": "node tools/scripts/test-friends.js",
+    "admin": "node tools/admin/server.js",
+    "fix-bold": "node tools/scripts/fix-chinese-bold.js",
+    "add-slugs": "node tools/scripts/add-slugs.js",
+    "update-graph": "venv\\python.exe tools/blog-clustering/generate_embeddings.py --offline",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "type-check": "astro check",
+    "validate": "npm run lint && npm run type-check && npm run build",
+    "prepare": "husky"
+  },
+  "dependencies": {
+    "@astrojs/cloudflare": "^13.5.0",
+    "@astrojs/mdx": "^5.0.4",
+    "@astrojs/rss": "^4.0.13",
+    "@astrojs/sitemap": "^3.6.0",
+    "@tailwindcss/vite": "^4",
+    "astro": "^6.3.1",
+    "cors": "^2.8.5",
+    "echarts": "^5.5.0",
+    "express": "^4.21.2",
+    "fuse.js": "^7.1.0",
+    "nanoid": "^5.1.6",
+    "rehype-katex": "^7.0.1",
+    "remark-math": "^6.0.0",
+    "remark-parse": "^11.0.0",
+    "sharp": "^0.34.3",
+    "tailwindcss": "^4",
+    "unified": "^11.0.4",
+    "unist-util-visit-parents": "^6.0.2"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.2",
+    "@tailwindcss/typography": "^0.5.19",
+    "@typescript-eslint/eslint-plugin": "^8.52.0",
+    "@typescript-eslint/parser": "^8.52.0",
+    "eslint": "^9.39.2",
+    "eslint-plugin-astro": "^1.5.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.2.7",
+    "typescript": "^5.9.3"
+  },
+  "overrides": {
+    "vite": "^7"
+  },
+  "lint-staged": {
+    "*.{js,mjs,cjs,ts,tsx,astro}": [
+      "eslint --fix"
+    ]
+  }
+}

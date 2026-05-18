@@ -1,0 +1,110 @@
+---
+// Misaka Network - Tags Overview Page
+import Layout from '../../layouts/Layout.astro';
+import TagsHeader from '../../components/tags/TagsHeader.astro';
+import TagsStatistics from '../../components/tags/TagsStatistics.astro';
+import TagsWordCloud from '../../components/tags/TagsWordCloud.astro';
+import TagsGrid from '../../components/tags/TagsGrid.astro';
+import TagsBackLink from '../../components/tags/TagsBackLink.astro';
+import type {BlogPost} from '../../utils/posts';
+import {getPublishedPosts} from '../../utils/posts';
+import {generateWordCloudData} from '../../utils/wordCloud';
+
+const allPosts = await getPublishedPosts();
+
+const tagStats = new Map<string, number>();
+allPosts.forEach((post: BlogPost) => {
+  const tags = post.data.tags || [];
+  tags.forEach((tag: string) => {
+    tagStats.set(tag, (tagStats.get(tag) || 0) + 1);
+  });
+});
+
+const sortedTags = Array.from(tagStats.entries())
+  .map(([tag, count]) => ({tag, count}))
+  .sort((a, b) => b.count - a.count);
+
+const totalTags = sortedTags.length;
+const totalPosts = allPosts.length;
+const hasTags = totalTags > 0;
+const averagePostsPerTag = totalTags > 0 ? (totalPosts / totalTags).toFixed(1) : '0.0';
+const topTag = hasTags ? sortedTags[0] : null;
+const chartTags = sortedTags.slice(0, 10);
+const totalTagOccurrences = sortedTags.reduce((acc, {count}) => acc + count, 0);
+const cumulativeShareData = (() => {
+  let runningTotal = 0;
+  return sortedTags.map(({count}, index) => {
+    runningTotal += count;
+    const percent = totalTagOccurrences > 0 ? (runningTotal / totalTagOccurrences) * 100 : 0;
+    return {rank: index + 1, percent: Number(percent.toFixed(2))};
+  });
+})();
+
+const maxNetworkTags = 20;
+const maxNetworkEdges = 60;
+const networkTags = sortedTags.slice(0, maxNetworkTags);
+const networkTagSet = new Set(networkTags.map(({tag}) => tag));
+const edgeCounts = new Map<string, number>();
+
+allPosts.forEach((post: BlogPost) => {
+  const tags = (post.data.tags || []).filter((tag: string) => networkTagSet.has(tag));
+  const uniqueTags = Array.from(new Set(tags));
+
+  for (let i = 0; i < uniqueTags.length; i++) {
+    for (let j = i + 1; j < uniqueTags.length; j++) {
+      const pair = [uniqueTags[i], uniqueTags[j]].sort();
+      const key = JSON.stringify(pair);
+      edgeCounts.set(key, (edgeCounts.get(key) || 0) + 1);
+    }
+  }
+});
+
+const networkEdges = Array.from(edgeCounts.entries())
+  .map(([key, weight]) => {
+    const [source, target] = JSON.parse(key) as [string, string];
+    return {source, target, weight};
+  })
+  .sort((a, b) => b.weight - a.weight)
+  .slice(0, maxNetworkEdges);
+
+const tagNetworkData = {
+  nodes: networkTags.map(({tag, count}) => ({id: tag, weight: count})),
+  edges: networkEdges
+};
+const hasTagNetworkData = tagNetworkData.nodes.length > 1 && tagNetworkData.edges.length > 0;
+const maxTreemapTags = 40;
+const treemapData = sortedTags.slice(0, maxTreemapTags).map(({tag, count}) => ({
+  tag,
+  count
+}));
+const hasTreemapData = treemapData.length > 0;
+
+const wordCloudData = generateWordCloudData(allPosts);
+const hasWordCloudData = wordCloudData.length > 0;
+---
+
+<Layout
+  title="标签归档 - Misaka Network"
+  description={`浏览所有 ${totalTags} 个标签，涵盖 ${totalPosts} 篇文章`}
+>
+  <TagsHeader totalTags={totalTags} totalPosts={totalPosts} />
+
+  <TagsStatistics
+    totalTags={totalTags}
+    averagePostsPerTag={averagePostsPerTag}
+    topTag={topTag}
+    hasTags={hasTags}
+    chartTags={chartTags}
+    cumulativeShareData={cumulativeShareData}
+    treemapData={treemapData}
+    hasTreemapData={hasTreemapData}
+    tagNetworkData={tagNetworkData}
+    hasTagNetworkData={hasTagNetworkData}
+  />
+
+  <TagsWordCloud wordCloudData={wordCloudData} hasWordCloudData={hasWordCloudData} />
+
+  <TagsGrid sortedTags={sortedTags} hasTags={hasTags} />
+
+  <TagsBackLink />
+</Layout>

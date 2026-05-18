@@ -1,0 +1,475 @@
+---
+// SearchModal.astro - 搜索模态框组件
+---
+
+<!-- 搜索模态框 -->
+<div
+  id="search-modal"
+  class="fixed inset-0 z-[100] hidden"
+  aria-labelledby="search-title"
+  role="dialog"
+  aria-modal="true"
+>
+  <!-- 遮罩层 -->
+  <div class="fixed inset-0 bg-black/50 backdrop-blur-sm transition-opacity" id="search-backdrop"></div>
+
+  <!-- 模态框内容 -->
+  <div class="fixed inset-0 z-10 overflow-y-auto p-4 sm:p-6 md:p-20">
+    <div class="mx-auto max-w-2xl transform transition-all">
+      <div
+        class="overflow-hidden rounded-2xl border shadow-2xl"
+        style="background-color: var(--bg-primary); border-color: var(--border-color);"
+      >
+        <!-- 搜索输入框 -->
+        <div class="relative">
+          <svg
+            class="pointer-events-none absolute left-4 top-3.5 h-5 w-5"
+            style="color: var(--text-tertiary);"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+          </svg>
+          <input
+            type="text"
+            id="search-input"
+            class="w-full border-0 bg-transparent pl-11 pr-4 py-3 outline-none placeholder:text-gray-500"
+            style="color: var(--text-primary);"
+            placeholder="搜索文章标题、描述、标签..."
+            autocomplete="off"
+            spellcheck="false"
+          />
+          <button
+            id="search-close"
+            class="absolute right-4 top-3 text-sm px-2 py-1 rounded"
+            style="background-color: var(--bg-secondary); color: var(--text-secondary); border: 1px solid var(--border-color);"
+          >
+            ESC
+          </button>
+        </div>
+
+        <!-- 分割线 -->
+        <div class="border-t" style="border-color: var(--border-color);"></div>
+
+        <!-- 搜索结果 -->
+        <div id="search-results" class="max-h-[60vh] overflow-y-auto px-2 py-2">
+          <!-- 初始提示 -->
+          <div id="search-empty" class="px-6 py-14 text-center">
+            <svg
+              class="mx-auto h-12 w-12 mb-4"
+              style="color: var(--text-tertiary);"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+            </svg>
+            <p class="text-sm" style="color: var(--text-secondary);">输入关键词开始搜索</p>
+          </div>
+
+          <!-- 无结果提示 -->
+          <div id="search-no-results" class="hidden px-6 py-14 text-center">
+            <p class="text-sm" style="color: var(--text-secondary);">未找到相关文章</p>
+          </div>
+
+          <!-- 结果列表 -->
+          <ul id="search-results-list" class="space-y-1"></ul>
+        </div>
+
+        <!-- 底部提示 -->
+        <div class="border-t px-4 py-3 flex items-center justify-between text-xs"
+             style="border-color: var(--border-color); color: var(--text-tertiary);">
+          <div class="flex items-center space-x-4">
+            <span class="flex items-center space-x-1">
+              <kbd class="px-1.5 py-0.5 rounded"
+                   style="background-color: var(--bg-secondary); border: 1px solid var(--border-color);">↑</kbd>
+              <kbd class="px-1.5 py-0.5 rounded"
+                   style="background-color: var(--bg-secondary); border: 1px solid var(--border-color);">↓</kbd>
+              <span>导航</span>
+            </span>
+            <span class="flex items-center space-x-1">
+              <kbd class="px-1.5 py-0.5 rounded"
+                   style="background-color: var(--bg-secondary); border: 1px solid var(--border-color);">Enter</kbd>
+              <span>选择</span>
+            </span>
+          </div>
+          <span class="flex items-center space-x-1">
+            <kbd class="px-1.5 py-0.5 rounded"
+                 style="background-color: var(--bg-secondary); border: 1px solid var(--border-color);">ESC</kbd>
+            <span>关闭</span>
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  import Fuse from 'fuse.js';
+
+  interface SearchItem {
+    slug: string;
+    title: string;
+    description: string;
+    tags: string[];
+    pubDate: string;
+  }
+
+  let fuse: Fuse<SearchItem> | null = null;
+  let searchData: SearchItem[] = [];
+  let selectedIndex = -1;
+
+  // 获取 DOM 元素（支持 View Transitions）
+  function getElements() {
+    return {
+      modal: document.getElementById('search-modal'),
+      backdrop: document.getElementById('search-backdrop'),
+      searchInput: document.getElementById('search-input') as HTMLInputElement,
+      searchClose: document.getElementById('search-close'),
+      searchResultsList: document.getElementById('search-results-list'),
+      searchEmpty: document.getElementById('search-empty'),
+      searchNoResults: document.getElementById('search-no-results'),
+    };
+  }
+
+  // 加载搜索数据
+  async function loadSearchData() {
+    if (searchData.length > 0) return;
+
+    try {
+      const response = await fetch('/search.json');
+      searchData = await response.json();
+
+      // 初始化 Fuse.js
+      fuse = new Fuse(searchData, {
+        keys: [
+          {name: 'title', weight: 3},
+          {name: 'description', weight: 2},
+          {name: 'tags', weight: 1},
+        ],
+        threshold: 0.4,
+        ignoreLocation: true,
+        minMatchCharLength: 2,
+      });
+    } catch (error) {
+      console.error('Failed to load search data:', error);
+    }
+  }
+
+  // 打开搜索模态框
+  function openSearch() {
+    const {modal, searchInput} = getElements();
+    if (!modal) return;
+
+    modal.classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+    searchInput?.focus();
+    loadSearchData();
+  }
+
+  // 关闭搜索模态框
+  function closeSearch() {
+    const {modal, searchInput, searchResultsList, searchEmpty, searchNoResults} = getElements();
+    if (!modal) return;
+
+    modal.classList.add('hidden');
+    document.body.style.overflow = '';
+    if (searchInput) searchInput.value = '';
+    if (searchResultsList) searchResultsList.innerHTML = '';
+    if (searchEmpty) searchEmpty.classList.remove('hidden');
+    if (searchNoResults) searchNoResults.classList.add('hidden');
+    selectedIndex = -1;
+  }
+
+  // 执行搜索
+  function performSearch(query: string) {
+    const {searchResultsList, searchEmpty, searchNoResults} = getElements();
+    if (!fuse || !searchResultsList || !searchEmpty || !searchNoResults) return;
+
+    selectedIndex = -1;
+
+    if (!query.trim()) {
+      searchResultsList.innerHTML = '';
+      searchEmpty.classList.remove('hidden');
+      searchNoResults.classList.add('hidden');
+      return;
+    }
+
+    const results = fuse.search(query).slice(0, 10);
+
+    searchEmpty.classList.add('hidden');
+
+    if (results.length === 0) {
+      searchResultsList.innerHTML = '';
+      searchNoResults.classList.remove('hidden');
+      return;
+    }
+
+    searchNoResults.classList.add('hidden');
+
+    selectedIndex = 0;
+    searchResultsList.replaceChildren(
+      ...results.map((result, index) => createSearchResultElement(result.item, index, query))
+    );
+
+    // 更新选中状态
+    updateSelectedItem();
+  }
+
+  // 高亮匹配文本
+  function createSearchResultElement(item: SearchItem, index: number, query: string): HTMLLIElement {
+    const li = document.createElement('li');
+
+    const link = document.createElement('a');
+    link.href = `/blog/${item.slug}`;
+    link.className = 'search-result-item block px-4 py-3 rounded-lg transition-all duration-200';
+    link.style.backgroundColor = index === selectedIndex ? 'var(--bg-secondary)' : 'transparent';
+    link.dataset.index = String(index);
+
+    const row = document.createElement('div');
+    row.className = 'flex items-start justify-between';
+
+    const content = document.createElement('div');
+    content.className = 'flex-1 min-w-0';
+
+    const title = document.createElement('h3');
+    title.className = 'text-sm font-medium truncate mb-1';
+    title.style.color = 'var(--text-primary)';
+    appendHighlightedText(title, item.title, query);
+    content.appendChild(title);
+
+    const description = document.createElement('p');
+    description.className = 'text-xs line-clamp-2 mb-2';
+    description.style.color = 'var(--text-secondary)';
+    description.textContent = item.description;
+    content.appendChild(description);
+
+    if (item.tags.length > 0) {
+      const tagContainer = document.createElement('div');
+      tagContainer.className = 'flex flex-wrap gap-1';
+
+      item.tags.slice(0, 3).forEach((tag) => {
+        const tagElement = document.createElement('span');
+        tagElement.className = 'text-xs px-2 py-0.5 rounded-full';
+        tagElement.style.backgroundColor = 'var(--bg-tertiary)';
+        tagElement.style.color = 'var(--text-tertiary)';
+        tagElement.textContent = tag;
+        tagContainer.appendChild(tagElement);
+      });
+
+      content.appendChild(tagContainer);
+    }
+
+    row.appendChild(content);
+    row.appendChild(createArrowIcon());
+    link.appendChild(row);
+    li.appendChild(link);
+
+    return li;
+  }
+
+  function appendHighlightedText(target: HTMLElement, text: string, query: string): void {
+    const trimmedQuery = query.trim();
+    if (!trimmedQuery) {
+      target.textContent = text;
+      return;
+    }
+
+    const escapedQuery = trimmedQuery.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const regex = new RegExp(escapedQuery, 'gi');
+    let lastIndex = 0;
+    let match = regex.exec(text);
+
+    while (match) {
+      const matchIndex = match.index;
+      if (matchIndex > lastIndex) {
+        target.appendChild(document.createTextNode(text.slice(lastIndex, matchIndex)));
+      }
+
+      const mark = document.createElement('mark');
+      mark.className = 'bg-misaka-blue/20 text-misaka-blue rounded px-0.5';
+      mark.textContent = match[0];
+      target.appendChild(mark);
+
+      lastIndex = matchIndex + match[0].length;
+      match = regex.exec(text);
+    }
+
+    if (lastIndex < text.length) {
+      target.appendChild(document.createTextNode(text.slice(lastIndex)));
+    }
+
+    if (target.childNodes.length === 0) {
+      target.textContent = text;
+    }
+  }
+
+  function createArrowIcon(): SVGSVGElement {
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.setAttribute('class', 'w-4 h-4 ml-2 flex-shrink-0 mt-0.5');
+    svg.setAttribute('style', 'color: var(--text-tertiary);');
+    svg.setAttribute('fill', 'none');
+    svg.setAttribute('stroke', 'currentColor');
+    svg.setAttribute('viewBox', '0 0 24 24');
+
+    const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    path.setAttribute('stroke-linecap', 'round');
+    path.setAttribute('stroke-linejoin', 'round');
+    path.setAttribute('stroke-width', '2');
+    path.setAttribute('d', 'M9 5l7 7-7 7');
+    svg.appendChild(path);
+
+    return svg;
+  }
+
+  // 更新选中项样式
+  function updateSelectedItem() {
+    const items = document.querySelectorAll('.search-result-item');
+    items.forEach((item, index) => {
+      if (index === selectedIndex) {
+        item.setAttribute('style', 'background-color: var(--bg-secondary);');
+        item.scrollIntoView({block: 'nearest', behavior: 'smooth'});
+      } else {
+        item.setAttribute('style', 'background-color: transparent;');
+      }
+    });
+  }
+
+  // 键盘导航
+  function handleKeyboardNavigation(e: KeyboardEvent) {
+    const items = document.querySelectorAll('.search-result-item');
+    const itemCount = items.length;
+
+    if (itemCount === 0) return;
+
+    switch (e.key) {
+      case 'ArrowDown':
+        e.preventDefault();
+        selectedIndex = (selectedIndex + 1) % itemCount;
+        updateSelectedItem();
+        break;
+      case 'ArrowUp':
+        e.preventDefault();
+        selectedIndex = selectedIndex <= 0 ? itemCount - 1 : selectedIndex - 1;
+        updateSelectedItem();
+        break;
+      case 'Enter':
+        e.preventDefault();
+        if (selectedIndex >= 0 && selectedIndex < itemCount) {
+          (items[selectedIndex] as HTMLAnchorElement).click();
+        }
+        break;
+    }
+  }
+
+  // 全局事件监听器（避免重复绑定）
+  let globalListenersAttached = false;
+
+  function attachGlobalListeners() {
+    if (globalListenersAttached) return;
+
+    // 监听 open-search 事件
+    window.addEventListener('open-search', openSearch);
+
+    // 全局 ESC 关闭
+    document.addEventListener('keydown', (e) => {
+      const {modal} = getElements();
+      if (e.key === 'Escape' && modal && !modal.classList.contains('hidden')) {
+        closeSearch();
+      }
+    });
+
+    // 鼠标悬停更新选中项
+    document.addEventListener('mouseover', (e) => {
+      const target = e.target as HTMLElement;
+      const resultItem = target.closest('.search-result-item');
+      if (resultItem) {
+        const index = parseInt(resultItem.getAttribute('data-index') || '-1');
+        if (index >= 0) {
+          selectedIndex = index;
+          updateSelectedItem();
+        }
+      }
+    });
+
+    globalListenersAttached = true;
+  }
+
+  // 初始化模态框事件监听器
+  function initModalListeners() {
+    const {backdrop, searchClose, searchInput} = getElements();
+
+    if (backdrop && backdrop.dataset.initialized !== 'true') {
+      backdrop.addEventListener('click', closeSearch);
+      backdrop.dataset.initialized = 'true';
+    }
+
+    if (searchClose && searchClose.dataset.initialized !== 'true') {
+      searchClose.addEventListener('click', closeSearch);
+      searchClose.dataset.initialized = 'true';
+    }
+
+    if (searchInput && searchInput.dataset.initialized !== 'true') {
+      searchInput.addEventListener('input', (e) => {
+        performSearch((e.target as HTMLInputElement).value);
+      });
+
+      searchInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+          closeSearch();
+        } else {
+          handleKeyboardNavigation(e);
+        }
+      });
+      searchInput.dataset.initialized = 'true';
+    }
+  }
+
+  // 初始化（首次加载）
+  attachGlobalListeners();
+  initModalListeners();
+
+  // View Transitions 支持（页面导航后重新初始化）
+  document.addEventListener('astro:page-load', () => {
+    attachGlobalListeners();
+    initModalListeners();
+  });
+</script>
+
+<style>
+  /* 自定义滚动条样式 */
+  #search-results::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  #search-results::-webkit-scrollbar-track {
+    background: var(--bg-primary);
+  }
+
+  #search-results::-webkit-scrollbar-thumb {
+    background: var(--border-color);
+    border-radius: 3px;
+  }
+
+  #search-results::-webkit-scrollbar-thumb:hover {
+    background: var(--text-tertiary);
+  }
+
+  /* 搜索结果悬停效果 */
+  .search-result-item:hover {
+    background-color: var(--bg-secondary) !important;
+    border-left: 2px solid var(--misaka-blue);
+    padding-left: calc(1rem - 2px);
+  }
+
+  /* 截断文本 */
+  .line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+</style>

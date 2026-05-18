@@ -1,0 +1,15 @@
+---
+// Misaka Network - Tag Component
+import {tagHref} from '../utils/tagHref';
+export interface Props {
+  tag: string;
+  href?: string;
+}
+
+const {tag, href} = Astro.props;
+const resolvedHref = href ?? tagHref(tag);
+---
+
+<a href={resolvedHref} class="tag-misaka no-underline">
+  #{tag}
+</a>

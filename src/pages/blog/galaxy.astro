@@ -1,0 +1,11 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import BlogGalaxy from '../../components/BlogGalaxy.astro';
+
+const title = 'Blog Galaxy';
+const description = 'Explore blog posts in a 2D galaxy map.';
+---
+
+<Layout title={title} description={description} mainClass="flex-1" showFooter={false}>
+  <BlogGalaxy fullBleed />
+</Layout>
