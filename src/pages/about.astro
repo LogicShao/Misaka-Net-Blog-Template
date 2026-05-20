@@ -51,7 +51,7 @@ import {PROFILE} from '../consts';
 
             <h3 class="text-xl font-bold text-misaka-circuit mb-3 mt-8">技术栈</h3>
             <ul class="list-disc list-inside space-y-2 ml-3" style="color: var(--text-secondary);">
-              <li><strong>核心框架：</strong>Astro 5.15, TypeScript 5.0, Tailwind CSS 3.4</li>
+              <li><strong>核心框架：</strong>Astro 6.3, TypeScript 5.9, Tailwind CSS 4.x</li>
               <li><strong>内容系统：</strong>Markdown/MDX, remark-math, rehype-katex</li>
               <li><strong>代码高亮：</strong>Shiki (Dracula 主题)</li>
               <li><strong>数学公式：</strong>remark-math + rehype-katex (构建时静态渲染)</li>
@@ -59,7 +59,7 @@ import {PROFILE} from '../consts';
               <li><strong>可视化：</strong>Chart.js (标签统计), WordCloud2.js (内容词云)</li>
               <li><strong>搜索引擎：</strong>Fuse.js (客户端模糊搜索)</li>
               <li><strong>管理后台：</strong>Express.js + Web 管理端</li>
-              <li><strong>部署平台：</strong>Cloudflare Pages</li>
+              <li><strong>部署平台：</strong>自托管 (1Panel)</li>
             </ul>
 
             <h3 class="text-xl font-bold text-misaka-circuit mb-3 mt-8">关注领域</h3>
@@ -156,15 +156,15 @@ import {PROFILE} from '../consts';
           <div class="space-y-3 text-sm">
             <div class="flex justify-between">
               <span style="color: var(--text-muted);">Version</span>
-              <span class="text-misaka-blue font-mono">v2.1</span>
+              <span class="text-misaka-blue font-mono">v2.2</span>
             </div>
             <div class="flex justify-between">
               <span style="color: var(--text-muted);">Framework</span>
-              <span class="text-misaka-circuit font-mono">Astro 5.15</span>
+              <span class="text-misaka-circuit font-mono">Astro 6.3</span>
             </div>
             <div class="flex justify-between">
               <span style="color: var(--text-muted);">Hosted on</span>
-              <span class="text-misaka-accent font-mono">Cloudflare</span>
+              <span class="text-misaka-accent font-mono">1Panel</span>
             </div>
             <div class="flex justify-between">
               <span style="color: var(--text-muted);">Status</span>
@@ -220,6 +220,13 @@ import {PROFILE} from '../consts';
               <div>
                 <div class="font-medium" style="color: var(--text-primary);">2025-01</div>
                 <div class="text-xs" style="color: var(--text-muted);">新增词云可视化、分页功能</div>
+              </div>
+            </div>
+            <div class="flex items-start space-x-3">
+              <div class="w-2 h-2 bg-misaka-circuit rounded-full mt-2 flex-shrink-0"></div>
+              <div>
+                <div class="font-medium" style="color: var(--text-primary);">2026-05</div>
+                <div class="text-xs" style="color: var(--text-muted);">升级 Astro 6 + Tailwind v4，新增日报系统，迁移自托管</div>
               </div>
             </div>
             <div class="flex items-start space-x-3">

@@ -15,7 +15,7 @@
     "admin": "node tools/admin/server.js",
     "fix-bold": "node tools/scripts/fix-chinese-bold.js",
     "add-slugs": "node tools/scripts/add-slugs.js",
-    "update-graph": "venv\\python.exe tools/blog-clustering/generate_embeddings.py --offline",
+    "update-graph": "venv\\python.exe tools/blog-clustering/generate_embeddings.py",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "type-check": "astro check",

@@ -72,11 +72,7 @@ def parse_args() -> argparse.Namespace:
         default="fp16",
         help="Embedding precision for GPU.",
     )
-    parser.add_argument(
-        "--offline",
-        action="store_true",
-        help="Use cached model only, no network access.",
-    )
+
     return parser.parse_args()
 
 
@@ -183,40 +179,18 @@ def main() -> int:
 
     model_dir = repo_root / "model"
     model_dir.mkdir(parents=True, exist_ok=True)
-    model_kwargs = {}
-    if device == "cuda" and precision == "fp16":
-        model_kwargs["dtype"] = torch.float16
-    if model_kwargs:
-        try:
-            model = SentenceTransformer(
-                args.model,
-                device=device,
-                cache_folder=str(model_dir),
-                model_kwargs=model_kwargs,
-            )
-        except (TypeError, ValueError):
-            legacy_kwargs = {"torch_dtype": model_kwargs["dtype"]}
-            try:
-                model = SentenceTransformer(
-                    args.model,
-                    device=device,
-                    cache_folder=str(model_dir),
-                    model_kwargs=legacy_kwargs,
-                )
-            except TypeError:
-                model = SentenceTransformer(
-                    args.model,
-                    device=device,
-                    cache_folder=str(model_dir),
-                )
-                model = model.to(model_kwargs["dtype"])
+    # Use local snapshot path if exists, otherwise fall back to model name
+    local_model_path = model_dir / "models--BAAI--bge-m3" / "snapshots" / "5617a9f61b028005a4858fdac845db406aefb181"
+    if local_model_path.exists():
+        model_path = str(local_model_path)
     else:
-        model = SentenceTransformer(
-            args.model,
-            device=device,
-            cache_folder=str(model_dir),
-            local_files_only=args.offline,
-        )
+        model_path = args.model
+
+    model = SentenceTransformer(
+        model_path,
+        device=device,
+        cache_folder=str(model_dir),
+    )
     if args.max_length:
         model.max_seq_length = args.max_length
     embeddings = model.encode(

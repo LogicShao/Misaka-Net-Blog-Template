@@ -206,6 +206,7 @@
     font-family: var(--font-mono);
     background-color: var(--bg-secondary);
     border: 1px solid var(--border-color);
+    color: var(--text-secondary);
   }
 
   /* 娣辫壊妯″紡涓嬬殑浠ｇ爜棰滆壊 */
@@ -447,6 +448,19 @@
 .prose code::before,
 .prose code::after {
   content: '' !important;
+}
+
+.prose code {
+  color: var(--text-secondary);
+}
+
+.dark .prose code {
+  color: var(--text-secondary);
+}
+
+:root:not(.dark) .prose code {
+  color: #f1f5f9;
+  background-color: #334155;
 }
 
 .prose h1,
