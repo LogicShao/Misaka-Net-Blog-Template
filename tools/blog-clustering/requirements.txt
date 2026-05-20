@@ -1,5 +1,7 @@
 numpy
+hdbscan
 python-frontmatter
 scikit-learn
 sentence-transformers
 torch
+umap-learn

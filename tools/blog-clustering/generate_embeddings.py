@@ -14,11 +14,11 @@ from datetime import date, datetime
 from pathlib import Path
 
 import frontmatter
+import hdbscan
 import numpy as np
 import torch
+import umap
 from sentence_transformers import SentenceTransformer
-from sklearn.cluster import KMeans
-from sklearn.manifold import TSNE
 
 
 @dataclass
@@ -129,24 +129,6 @@ def load_posts(content_dir: Path) -> list[PostRecord]:
         posts.append(PostRecord(title=title, slug=slug, date=date_str, content=body))
     return posts
 
-
-def compute_tsne(embeddings: np.ndarray, seed: int) -> np.ndarray:
-    sample_count = embeddings.shape[0]
-    if sample_count == 1:
-        return np.array([[0.0, 0.0]], dtype=float)
-    if sample_count == 2:
-        return np.array([[-1.0, 0.0], [1.0, 0.0]], dtype=float)
-    perplexity = min(30, max(5, (sample_count - 1) // 3))
-    tsne = TSNE(
-        n_components=2,
-        init="pca",
-        learning_rate="auto",
-        perplexity=perplexity,
-        random_state=seed,
-    )
-    return tsne.fit_transform(embeddings)
-
-
 def main() -> int:
     args = parse_args()
     repo_root = Path(__file__).resolve().parents[2]
@@ -201,11 +183,44 @@ def main() -> int:
     )
     embeddings = np.asarray(embeddings)
 
-    cluster_count = min(args.clusters, len(posts))
-    kmeans = KMeans(n_clusters=cluster_count, random_state=args.seed, n_init="auto")
-    labels = kmeans.fit_predict(embeddings)
+    if len(posts) == 1:
+        labels = np.array([0], dtype=int)
+        vis_embedding = np.array([[0.0, 0.0]], dtype=float)
+    elif len(posts) == 2:
+        labels = np.array([0, 1], dtype=int)
+        vis_embedding = np.array([[-1.0, 0.0], [1.0, 0.0]], dtype=float)
+    else:
+        cluster_components = min(50, max(2, len(posts) - 2), embeddings.shape[1])
+        vis_neighbors = min(15, len(posts) - 1)
 
-    coords = compute_tsne(embeddings, args.seed)
+        # Stage 1: UMAP 1024D → 50D for clustering (cosine, tight clusters)
+        print("Reducing to 50D for clustering...")
+        clusterable_embedding = umap.UMAP(
+            n_neighbors=vis_neighbors,
+            min_dist=0.0,
+            n_components=cluster_components,
+            metric='cosine',
+            random_state=args.seed
+        ).fit_transform(embeddings)
+
+        # Stage 2: HDBSCAN density-based clustering on 50D
+        print("Running HDBSCAN clustering...")
+        clusterer = hdbscan.HDBSCAN(
+            min_cluster_size=min(5, max(3, len(posts) // 10)),
+            min_samples=3,
+            metric='euclidean'
+        )
+        labels = clusterer.fit_predict(clusterable_embedding)
+
+        # Stage 3: UMAP 50D → 2D for visualization (euclidean, spread points)
+        print("Reducing to 2D for visualization...")
+        vis_embedding = umap.UMAP(
+            n_neighbors=vis_neighbors,
+            min_dist=0.1,
+            n_components=2,
+            metric='euclidean',
+            random_state=args.seed
+        ).fit_transform(clusterable_embedding)
 
     output_records = []
     for idx, post in enumerate(posts):
@@ -215,8 +230,8 @@ def main() -> int:
                 "slug": post.slug,
                 "date": post.date,
                 "cluster": int(labels[idx]),
-                "x": float(coords[idx, 0]),
-                "y": float(coords[idx, 1]),
+                "x": float(vis_embedding[idx, 0]),
+                "y": float(vis_embedding[idx, 1]),
             }
         )
 

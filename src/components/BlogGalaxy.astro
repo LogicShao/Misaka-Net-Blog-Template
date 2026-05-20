@@ -13,14 +13,20 @@ const chartClass = fullBleed ? 'w-full h-full' : 'h-[420px] md:h-[520px] w-full'
 
 <section class={wrapperClass}>
   {fullBleed ? (
-    <div
-      class="absolute left-6 top-6 z-10 max-w-sm rounded-xl border px-4 py-3 backdrop-blur"
-      style="background-color: var(--bg-secondary); border-color: var(--border-color);"
-    >
-      <h2 class="text-lg font-bold" style="color: var(--text-primary);">Blog Galaxy</h2>
-      <p class="text-xs font-mono" style="color: var(--text-muted);">
-        Pan, zoom, and click a star to open a post.
-      </p>
+    <div id="galaxy-overlay" class="absolute left-6 top-6 z-10 max-w-sm rounded-xl border px-4 py-3 backdrop-blur transition-all duration-300"
+         style="background-color: var(--bg-secondary); border-color: var(--border-color);">
+      <div class="flex items-center justify-between gap-2">
+        <h2 class="text-lg font-bold" style="color: var(--text-primary);">Blog Galaxy</h2>
+        <button id="galaxy-overlay-toggle" class="text-xs font-mono hover:text-misaka-blue transition-colors"
+                style="color: var(--text-muted);" aria-label="Toggle overlay">
+          −
+        </button>
+      </div>
+      <div id="galaxy-overlay-body">
+        <p class="text-xs font-mono mt-1" style="color: var(--text-muted);">
+          Pan, zoom, and click a star to open a post.
+        </p>
+      </div>
     </div>
   ) : (
     <div class="space-y-2">
@@ -91,8 +97,11 @@ const chartClass = fullBleed ? 'w-full h-full' : 'h-[420px] md:h-[520px] w-full'
         slug: item.slug,
         cluster: item.cluster,
         itemStyle: {
-          color: palette[(item.cluster || 0) % palette.length],
+          color: item.cluster === -1
+            ? 'rgba(100, 116, 139, 0.3)'
+            : palette[item.cluster % palette.length],
         },
+        symbolSize: item.cluster === -1 ? 6 : 10,
       }));
     }
 
@@ -136,12 +145,25 @@ const chartClass = fullBleed ? 'w-full h-full' : 'h-[420px] md:h-[520px] w-full'
       const palette = [
         rootStyles.getPropertyValue('--misaka-blue').trim() || '#00bfff',
         rootStyles.getPropertyValue('--misaka-circuit').trim() || '#4ade80',
-        rootStyles.getPropertyValue('--misaka-accent').trim() || '#38bdf8',
-        rootStyles.getPropertyValue('--misaka-gray').trim() || '#64748b',
         '#f97316',
+        '#e879f9',
+        '#facc15',
+        '#fb7185',
+        '#a78bfa',
+        '#2dd4bf',
       ];
 
       const seriesData = buildSeriesData(items, palette);
+
+      // Compute axis ranges with 20% padding for zoom-out room
+      const xs = items.map(item => item.x);
+      const ys = items.map(item => item.y);
+      const xMin = Math.min(...xs);
+      const xMax = Math.max(...xs);
+      const yMin = Math.min(...ys);
+      const yMax = Math.max(...ys);
+      const xPad = (xMax - xMin) * 0.2 || 1;
+      const yPad = (yMax - yMin) * 0.2 || 1;
 
       chart = window.echarts.init(container, null, {renderer: 'canvas'});
 
@@ -153,16 +175,18 @@ const chartClass = fullBleed ? 'w-full h-full' : 'h-[420px] md:h-[520px] w-full'
       chart.setOption({
         animationDuration: 600,
         animationEasing: 'cubicOut',
-        grid: {left: 0, right: 0, top: 0, bottom: 0},
+        grid: {left: 0, right: 0, top: 80, bottom: 0},
         xAxis: {
           type: 'value',
           show: false,
-          scale: true,
+          min: xMin - xPad,
+          max: xMax + xPad,
         },
         yAxis: {
           type: 'value',
           show: false,
-          scale: true,
+          min: yMin - yPad,
+          max: yMax + yPad,
         },
         tooltip: {
           trigger: 'item',
@@ -170,18 +194,20 @@ const chartClass = fullBleed ? 'w-full h-full' : 'h-[420px] md:h-[520px] w-full'
             const data = params.data || {};
             const title = data.title || '';
             const date = data.date || '';
-            return date ? `${title}<br/>${date}` : title;
+            const clusterLabel = data.cluster === -1 ? 'Noise' : `Cluster ${data.cluster}`;
+            if (date && title) return `${title}<br/>${date}<br/>${clusterLabel}`;
+            if (title) return `${title}<br/>${clusterLabel}`;
+            return clusterLabel;
           },
         },
         dataZoom: [
-          {type: 'inside', xAxisIndex: 0, filterMode: 'none'},
-          {type: 'inside', yAxisIndex: 0, filterMode: 'none'},
+          {type: 'inside', xAxisIndex: 0, filterMode: 'none', minSpan: 0},
+          {type: 'inside', yAxisIndex: 0, filterMode: 'none', minSpan: 0},
         ],
         series: [
           {
             type: 'scatter',
             data: seriesData,
-            symbolSize: 10,
             emphasis: {
               scale: true,
               itemStyle: {
@@ -232,5 +258,25 @@ const chartClass = fullBleed ? 'w-full h-full' : 'h-[420px] md:h-[520px] w-full'
 
     setup();
     document.addEventListener('astro:page-load', setup);
+
+    // Collapsible overlay
+    const overlay = document.getElementById('galaxy-overlay');
+    const toggle = document.getElementById('galaxy-overlay-toggle');
+    const body = document.getElementById('galaxy-overlay-body');
+    if (overlay && toggle && body) {
+      let collapsed = false;
+      toggle.addEventListener('click', () => {
+        collapsed = !collapsed;
+        if (collapsed) {
+          body.style.display = 'none';
+          toggle.textContent = '+';
+          overlay.style.padding = '0.5rem 0.75rem';
+        } else {
+          body.style.display = '';
+          toggle.textContent = '−';
+          overlay.style.padding = '';
+        }
+      });
+    }
   </script>
 </section>
