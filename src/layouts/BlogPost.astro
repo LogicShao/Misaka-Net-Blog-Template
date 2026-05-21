@@ -21,7 +21,7 @@ type Props = CollectionEntry<'blog'>['data'] & {
 const {title, description, pubDate, updatedDate, heroImage, tags = [], prevPost, nextPost} = Astro.props;
 ---
 
-<Layout title={`${title} - Misaka Network`} description={description}>
+<Layout title={`${title} - Misaka Network`} description={description} showKaTeX={true}>
   <!-- 滚动进度条（仅博客文章页） -->
   <ScrollProgress/>
 

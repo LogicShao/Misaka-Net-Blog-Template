@@ -58,7 +58,7 @@ const chartClass = fullBleed ? 'w-full h-full' : 'h-[420px] md:h-[520px] w-full'
     id="blog-galaxy-data"
     set:html={JSON.stringify(clusters)}
   ></script>
-  <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
+  <script is:inline src="/libs/echarts.min.js"></script>
   <script>
     let chart: EChartsInstance | null = null;
     let resizeBound = false;

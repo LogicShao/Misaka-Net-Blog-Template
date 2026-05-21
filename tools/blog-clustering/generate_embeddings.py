@@ -6,6 +6,10 @@ import json
 import os
 import re
 import sys
+import warnings
+
+# Silence UMAP n_jobs warning when random_state is set (expected: reproducibility > parallelism)
+warnings.filterwarnings('ignore', message=r'n_jobs value \d+ overridden to \d+ by setting random_state')
 
 # Force offline mode before any HF imports
 os.environ["HF_HUB_OFFLINE"] = "1"
