@@ -87,12 +87,16 @@ const today = new Date();
       <p class="mb-2">
         &copy; {today.getFullYear()} {SITE_TITLE}. All rights reserved.
       </p>
-      <p class="mb-2">
-        <a href="https://beian.miit.gov.cn" target="_blank" rel="noopener"
-           class="hover:text-misaka-blue transition-colors" style="color: var(--text-muted);">
-          浙ICP备2026032951号
-        </a>
-      </p>
+      {
+        import.meta.env.ICP_NUMBER && (
+          <p class="mb-2">
+            <a href="https://beian.miit.gov.cn" target="_blank" rel="noopener"
+               class="hover:text-misaka-blue transition-colors" style="color: var(--text-muted);">
+              {import.meta.env.ICP_NUMBER}
+            </a>
+          </p>
+        )
+      }
       <p class="font-mono text-xs text-misaka-circuit/60">
         // Powered by Astro | Self-hosted via 1Panel
       </p>
