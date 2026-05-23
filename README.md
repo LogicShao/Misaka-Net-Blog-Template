@@ -27,7 +27,7 @@
 - Blog Galaxy 可视化（ECharts 聚类星系图）
 - 深色/浅色主题切换
 - 本地管理端（Web）
-- 自托管部署（1Panel + OpenResty）
+- 静态 HTML 输出（可部署到任意 Web 服务器）
 
 ## 快速开始
 **前置要求**：Node.js 22+
@@ -108,9 +108,9 @@ deploy/               部署配置
 
 ## 部署
 
-通过 GitHub Actions 自动部署到自托管服务器（1Panel + OpenResty）。构建命令 `npm run build`，输出目录 `dist/`。
+构建命令 `npm run build`，输出目录 `dist/`。产物为纯静态文件，可部署到任意 Web 服务器或静态托管平台（Vercel、Netlify、Cloudflare Pages、Nginx 等）。
 
-部署流程：push main → CI 构建 → rsync 到服务器 → OpenResty reload。
+本站演示使用 GitHub Actions 自动部署到自托管服务器（1Panel + OpenResty），部署流程：push main → CI 构建 → rsync 到服务器 → reload。
 
 ## 开源模板
 
