@@ -6,12 +6,19 @@ type Props = HTMLAttributes<'a'>;
 const {href, class: className, ...props} = Astro.props;
 const pathname = Astro.url.pathname;
 
-const isBlogGalaxy = pathname === '/blog/galaxy';
+// Strip trailing slash for comparison (except root "/")
+const normalize = (p: string) => (p !== '/' && p.endsWith('/') ? p.slice(0, -1) : p);
+const normalizedHref = normalize(href || '');
+const normalizedPath = normalize(pathname);
+
+// isBlogGalaxy: explicit /blog/galaxy or any hypothetical sub-route
+const isBlogGalaxy = normalizedPath === '/blog/galaxy' || normalizedPath.startsWith('/blog/galaxy/');
+
 const isActive =
-  href === pathname ||
-  (href === '/blog' && pathname.startsWith('/blog/') && !isBlogGalaxy) ||
-  (href === '/daily' && pathname.startsWith('/daily/')) ||
-  (href === '/tags' && pathname.startsWith('/tags/'));
+  normalizedHref === normalizedPath ||
+  (normalizedHref === '/blog' && normalizedPath.startsWith('/blog/') && !isBlogGalaxy) ||
+  (normalizedHref === '/daily' && normalizedPath.startsWith('/daily/')) ||
+  (normalizedHref === '/tags' && normalizedPath.startsWith('/tags/'));
 ---
 
 <a
