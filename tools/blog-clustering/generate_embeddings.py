@@ -126,7 +126,7 @@ def load_posts(content_dir: Path) -> list[PostRecord]:
         title = str(meta.get("title") or path.stem)
         date_value = meta.get("pubDate") or meta.get("date")
         date_str = normalize_date(date_value)
-        slug = path.relative_to(content_dir).with_suffix("").as_posix()
+        slug = meta.get("slug") or path.relative_to(content_dir).with_suffix("").as_posix()
         body = strip_markdown(post.content)
         if not body:
             body = title

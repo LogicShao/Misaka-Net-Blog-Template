@@ -2,7 +2,7 @@
 
 # Misaka Network Blog
 
-<img src="public/favicon.svg" alt="Misaka Network Logo" width="96" align="right" />
+<img src="public/favicon/favicon.svg" alt="Misaka Network Logo" width="96" align="right" />
 
 御坂网络 - 科学实验日志与技术观测站  
 *A Certain Scientific Blog Theme*

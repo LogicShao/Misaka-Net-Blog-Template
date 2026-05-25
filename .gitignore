@@ -53,3 +53,6 @@ nul
 # Misc
 temp/
 .sisyphus/
+
+# Sensitive docs (not for public repo)
+docs/about-misaka-net.md

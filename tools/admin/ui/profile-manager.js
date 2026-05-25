@@ -62,7 +62,7 @@ function displayProfileForm(profile = {}) {
               name="avatar"
               value="${escapeHtml(profile.avatar || '')}"
               required
-              placeholder="请输入头像图片链接（如：/favicon.svg）"
+              placeholder="请输入头像图片链接（如：/favicon/favicon.svg）"
             />
             <div class="avatar-preview" id="avatar-preview">
               ${profile.avatar ? `<img src="${escapeHtml(profile.avatar)}" alt="头像预览" />` : '<div class="no-avatar">暂无头像</div>'}
@@ -159,10 +159,10 @@ function displayProfileForm(profile = {}) {
           <div class="profile-header">
             <img
               id="profile-preview-avatar"
-              src="${escapeHtml(profile.avatar || '/favicon1.svg')}"
+              src="${escapeHtml(profile.avatar || '/favicon/favicon1.svg')}"
               alt="${escapeHtml(profile.name || '未设置姓名')}"
               class="profile-avatar"
-              onerror="this.src='/favicon1.svg'"
+              onerror="this.src='/favicon/favicon1.svg'"
             />
             <div class="profile-info">
               <h3 id="profile-preview-name">${escapeHtml(profile.name || '未设置姓名')}</h3>
@@ -259,7 +259,7 @@ function renderLivePreview(profileOverride) {
   const links = document.getElementById('profile-preview-links');
 
   if (avatar) {
-    avatar.src = profile.avatar || '/favicon1.svg';
+    avatar.src = profile.avatar || '/favicon/favicon1.svg';
     avatar.alt = profile.name || '未设置姓名';
   }
   if (name) {
@@ -367,10 +367,10 @@ function previewProfile() {
       <div class="modal-body">
         <div class="profile-preview-card">
           <div class="profile-header">
-            <img src="${escapeHtml(profile.avatar || '/favicon1.svg')}"
+            <img src="${escapeHtml(profile.avatar || '/favicon/favicon1.svg')}"
                  alt="${escapeHtml(profile.name)}"
                  class="profile-avatar"
-                 onerror="this.src='/favicon1.svg'" />
+                 onerror="this.src='/favicon/favicon1.svg'" />
             <div class="profile-info">
               <h3>${escapeHtml(profile.name || '未设置姓名')}</h3>
               <p class="profile-bio">${escapeHtml(profile.bio || '未设置简介')}</p>

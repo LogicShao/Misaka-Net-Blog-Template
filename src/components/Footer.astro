@@ -97,6 +97,17 @@ const today = new Date();
           </p>
         )
       }
+      {
+        import.meta.env.PSB_NUMBER && (
+          <p class="mb-2 flex items-center justify-center gap-1">
+            <img src="/figs/警徽标志.png" alt="公安备案" class="w-4 h-4 inline-block" />
+            <a href="https://www.beian.gov.cn/portal/registerSystemInfo" target="_blank" rel="noreferrer"
+               class="hover:text-misaka-blue transition-colors" style="color: var(--text-muted);">
+              {import.meta.env.PSB_NUMBER}
+            </a>
+          </p>
+        )
+      }
       <p class="font-mono text-xs text-misaka-circuit/60">
         // Powered by Astro | Self-hosted via 1Panel
       </p>
