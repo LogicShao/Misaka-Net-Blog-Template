@@ -71,5 +71,8 @@ export default defineConfig({
         ignored: ['**/model/**', '**/venv/**'],
       },
     },
+    build: {
+      assetsInlineLimit: 0,
+    },
   },
 });

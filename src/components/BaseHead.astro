@@ -2,6 +2,7 @@
 // Import the global.css file here so that it is included on
 // all pages through the use of the <BaseHead /> component.
 import '../styles/global.css';
+import 'katex/dist/katex.min.css';
 import type {ImageMetadata} from 'astro';
 import FallbackImage from '../assets/blog-placeholder-1.jpg';
 import {SITE_TITLE} from '../consts';
@@ -95,9 +96,7 @@ const {title, description, image = FallbackImage, showKaTeX = false} = Astro.pro
 <link rel="preload" href="/fonts/space-grotesk-700.woff2" as="font" type="font/woff2" crossorigin/>
 <link rel="preload" href="/fonts/jetbrains-mono-400.woff2" as="font" type="font/woff2" crossorigin/>
 
-{showKaTeX && (
-<link rel="stylesheet" href="/libs/katex.min.css"/>
-)}
+{/* KaTeX CSS loaded via Vite import in frontmatter above */}
 
 <!-- Canonical URL -->
 <link rel="canonical" href={canonicalURL}/>
