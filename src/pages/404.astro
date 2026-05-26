@@ -1,0 +1,58 @@
+---
+// Misaka Network - 404 Page
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="404 - Misaka Network" description="页面不存在 - 御坂网络">
+  <main class="flex items-center justify-center min-h-[70vh]">
+    <div class="text-center">
+      <!-- 404 大标题 -->
+      <h1
+        class="text-8xl md:text-9xl font-bold text-glow mb-4"
+        style="color: var(--text-primary);"
+      >
+        404
+      </h1>
+
+      <!-- 副标题 -->
+      <p class="text-xl md:text-2xl text-misaka-circuit font-mono mb-2">
+        CONNECTION_LOST
+      </p>
+      <p class="text-lg mb-8" style="color: var(--text-secondary);">
+        你访问的节点不存在，或已被移出御坂网络。
+      </p>
+
+      <!-- 电磁效果装饰 -->
+      <div class="flex justify-center mb-10 space-x-3">
+        <div class="w-16 h-1 bg-gradient-to-r from-transparent via-misaka-blue to-transparent"></div>
+        <div class="w-2 h-2 bg-misaka-blue rounded-full animate-pulse"></div>
+        <div class="w-16 h-1 bg-gradient-to-r from-transparent via-misaka-circuit to-transparent"></div>
+      </div>
+
+      <!-- 返回链接 -->
+      <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
+        <a
+          href="/"
+          class="btn-misaka inline-flex items-center space-x-2"
+        >
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-4 0a1 1 0 01-1-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 01-1 1"/>
+          </svg>
+          <span>返回首页</span>
+        </a>
+        <a
+          href="/blog"
+          class="inline-flex items-center space-x-2 hover:text-misaka-blue transition-colors"
+          style="color: var(--text-muted);"
+        >
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/>
+          </svg>
+          <span>浏览文章</span>
+        </a>
+      </div>
+    </div>
+  </main>
+</Layout>
