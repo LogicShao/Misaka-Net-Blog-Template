@@ -104,6 +104,50 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'ui')));
 
+// 认证中间件
+const ADMIN_TOKEN = process.env.ADMIN_TOKEN;
+
+function authMiddleware(req, res, next) {
+  // 跳过静态资源和 /api/info 端点
+  if (req.path === '/api/info' || !req.path.startsWith('/api/')) {
+    return next();
+  }
+
+  // 如果未配置 ADMIN_TOKEN，记录警告但允许访问（向后兼容）
+  if (!ADMIN_TOKEN) {
+    logger.warn('AUTH', 'ADMIN_TOKEN not configured - authentication disabled');
+    return next();
+  }
+
+  // 检查 Authorization header
+  const authHeader = req.headers.authorization;
+
+  if (!authHeader) {
+    logger.warn('AUTH', `Unauthorized access attempt: ${req.method} ${req.path}`);
+    return res.status(401).json({
+      success: false,
+      error: '未授权：缺少 Authorization header'
+    });
+  }
+
+  // 支持 "Bearer <token>" 格式
+  const token = authHeader.startsWith('Bearer ')
+    ? authHeader.slice(7)
+    : authHeader;
+
+  if (token !== ADMIN_TOKEN) {
+    logger.warn('AUTH', `Invalid token attempt: ${req.method} ${req.path}`);
+    return res.status(403).json({
+      success: false,
+      error: '未授权：无效的 token'
+    });
+  }
+
+  next();
+}
+
+app.use(authMiddleware);
+
 // 请求日志中间件
 app.use((req, res, next) => {
   const start = Date.now();
@@ -1050,6 +1094,14 @@ app.listen(PORT, HOST, () => {
   logger.info('SERVER', `API Endpoint: http://${HOST}:${PORT}/api`);
   logger.info('SERVER', `Blog Directory: ${BLOG_DIR}`);
   logger.info('SERVER', `Environment: ${process.env.NODE_ENV || 'development'}`);
+
+  // 认证状态提示
+  if (ADMIN_TOKEN) {
+    logger.success('AUTH', 'Authentication enabled');
+  } else {
+    logger.warn('AUTH', 'Authentication disabled - set ADMIN_TOKEN in .env to enable');
+  }
+
   console.log('='.repeat(60));
   console.log(`\n${LOG_COLORS.yellow}Press Ctrl+C to stop the server${LOG_COLORS.reset}\n`);
 });
