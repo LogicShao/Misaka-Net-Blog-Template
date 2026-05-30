@@ -23,7 +23,6 @@
 - KaTeX 数学公式、RSS、Sitemap、SEO
 - 搜索索引（Fuse.js）
 - 友链/标签/草稿支持
-- 日报系统（daily collection）
 - Blog Galaxy 可视化（ECharts 聚类星系图）
 - 深色/浅色主题切换
 - 本地管理端（Web）
@@ -81,8 +80,6 @@ draft: false
 ---
 ```
 
-日报文章放在 `src/content/daily/`，格式类似，使用 `date`、`summary`、`tags` 字段。
-
 ## 管理端
 - **Web 管理端**：`npm run admin`，默认地址 `http://localhost:3201`
 - **端口配置**：在 `.env` 中设置 `ADMIN_PORT`（示例见 `.env.example`）
@@ -94,7 +91,6 @@ src/                  源代码
   components/         UI 组件
   content/            内容
     blog/             博客文章 (Markdown/MDX)
-    daily/            日报
   styles/             样式
   utils/              工具函数
 tools/                开发工具

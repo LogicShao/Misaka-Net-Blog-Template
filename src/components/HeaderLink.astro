@@ -8,7 +8,7 @@ const pathname = Astro.url.pathname;
 
 // Strip trailing slash for comparison (except root "/")
 const normalize = (p: string) => (p !== '/' && p.endsWith('/') ? p.slice(0, -1) : p);
-const normalizedHref = normalize(href || '');
+const normalizedHref = normalize(href ? String(href) : '');
 const normalizedPath = normalize(pathname);
 
 // isBlogGalaxy: explicit /blog/galaxy or any hypothetical sub-route
@@ -17,7 +17,6 @@ const isBlogGalaxy = normalizedPath === '/blog/galaxy' || normalizedPath.startsW
 const isActive =
   normalizedHref === normalizedPath ||
   (normalizedHref === '/blog' && normalizedPath.startsWith('/blog/') && !isBlogGalaxy) ||
-  (normalizedHref === '/daily' && normalizedPath.startsWith('/daily/')) ||
   (normalizedHref === '/tags' && normalizedPath.startsWith('/tags/'));
 ---
 

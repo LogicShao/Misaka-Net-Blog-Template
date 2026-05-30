@@ -3,6 +3,7 @@
 import mdx from '@astrojs/mdx';
 import sitemap from '@astrojs/sitemap';
 import tailwindcss from '@tailwindcss/vite';
+import {createMarkdownProcessor} from '@astrojs/markdown-remark';
 import {defineConfig} from 'astro/config';
 import remarkMath from 'remark-math';
 import rehypeKatex from 'rehype-katex';
@@ -33,6 +34,28 @@ if (fs.existsSync(envPath)) {
 // 读取环境变量
 const DEV_PORT = process.env.DEV_PORT ? parseInt(process.env.DEV_PORT) : 3000;
 
+const markdownProcessor = {
+  name: 'unified',
+  options: {
+    remarkPlugins: [remarkMath],
+    rehypePlugins: [
+      [
+        rehypeKatex,
+        {
+          strict: (/** @type {string} */ code) => (code === 'unicodeTextInMathMode' ? 'ignore' : 'warn'),
+        },
+      ],
+    ],
+    remarkRehype: {},
+  },
+  createRenderer(shared) {
+    return createMarkdownProcessor({
+      ...shared,
+      ...this.options,
+    });
+  },
+};
+
 // https://astro.build/config
 export default defineConfig({
   site: 'https://blog.misaka-net.top', // 替换为你的 Cloudflare Pages URL 或自定义域名
@@ -50,15 +73,7 @@ export default defineConfig({
     sitemap(),
   ],
   markdown: {
-    remarkPlugins: [remarkMath],
-    rehypePlugins: [
-      [
-        rehypeKatex,
-        {
-          strict: (/** @type {string} */ code) => (code === 'unicodeTextInMathMode' ? 'ignore' : 'warn'),
-        },
-      ],
-    ],
+    processor: markdownProcessor,
     shikiConfig: {
       theme: 'dracula',
       wrap: true,

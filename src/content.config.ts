@@ -21,13 +21,4 @@ const blog = defineCollection({
     }),
 });
 
-const daily = defineCollection({
-  loader: glob({base: './src/content/daily', pattern: '**/*.md'}),
-  schema: z.object({
-    date: z.coerce.date(),
-    summary: z.string().optional(),
-    tags: z.array(z.string()).default([]),
-  }),
-});
-
-export const collections = {blog, daily};
+export const collections = {blog};
